@@ -14,7 +14,9 @@
     // Residing place for our Canvas' context
     var ctx = null;
     var brix1 = [];
+    var masterWords = [];
     var letters = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z"];
+    var colors = ["red", "orange", "green", "purple", "blue"]
     var xx = true;
     var Game = {
         // Setup configuration
@@ -116,12 +118,13 @@
             this.y = 210;
             this.speed = 1;
             this.letter = letters[Math.floor(Math.random() * letters.length)];
+            this.color = colors[Math.floor(Math.random() * colors.length)];
         },
 
         draw: function() {
             this.move();
             
-            ctx.fillStyle = this.gradient();
+            ctx.fillStyle = this.color;
             ctx.fillRect(this.x, this.y, this.w, this.h);
 
             ctx.fillStyle = "white";
@@ -132,7 +135,7 @@
             // Detect controller input
             if (Ctrl.left && (this.x < Game.width - (this.w))) {
                 this.x += this.speed;
-            } else if (Ctrl.right && this.x > -this.w) {
+            } else if (Ctrl.right && this.x > 0) {
                 this.x += -this.speed;
             }
             if ((this.y < (550 - this.h)) && !(Bricks.collide(this.x, this.y))){
@@ -140,23 +143,18 @@
             }
             else 
             {
-                Bricks.save(this.x, this.y, this.letter);
+                Bricks.save(this.x, this.y, this.letter, this.color);
                 Bricks.process();
                 console.log("Done");
                 if (this.y <= 210)
                 {
                     brix1 = [];
-                    //xx = true;
+
                     Game.canvas.addEventListener('click', Game.restartGame, false);
-                    //while (xx){
-                    //    console.log("sssss");
-                        Screen.gameover();
-                        xx = false;
-                        console.log(xx);
-                   // }
-                    //throw new Error();
+                    Screen.gameover();
+                    xx = false;
+                    console.log(xx);
                     return;
-                    //Game.setup();
                 }
                 else
                 {
@@ -167,36 +165,21 @@
             
         },
 
-        gradient: function() {
-            if (this.gradientCache) {
-                return this.gradientCache;
-            }
-
-            this.gradientCache = ctx.createLinearGradient(this.x, this.y, this.x, this.y + 20);
-            this.gradientCache.addColorStop(0, '#111');
-            this.gradientCache.addColorStop(1, '#999');
-
-            return this.gradientCache;
-        }
     }
 
     var Bricks = {
         init: function() {
-            //var brix = {x: 0, y: 0};
-            //this.brix = 5;
-            //brix1
+
         },
 
-        save: function(x1, y1, l1){
-            console.log("LALALALALALALA: " + l1);
-            brix1.push({x: x1, y: y1, l: l1});
-            
+        save: function(x1, y1, l1, c1){
+            brix1.push({x: x1, y: y1, l: l1, c: c1});
         },
 
         draw: function(){
             
             for (var i = 0; i < brix1.length; i++){
-                ctx.fillStyle = "green";
+                ctx.fillStyle = brix1[i].c;
                 ctx.fillRect(brix1[i].x, brix1[i].y, 50, 20);
                 ctx.fillStyle = "white";
                 ctx.fillText(brix1[i].l, brix1[i].x + 25, brix1[i].y + 15, 20);
@@ -205,12 +188,10 @@
 
         collide: function(x2, y2){
             //console.log("collide");
-            for (var j = 0; j < brix1.length; j++){
-                //console.log("x" +j+": " + brix1[j].x + " y" + j + ":" + brix1[j].y);
-                //if (((y2 + 20) >= brix1[j].y) && ((y2 + 20) <= (brix1[j].y + 20)))
+            for (var j = 0; j < brix1.length; j++)
+            {
                 if ((((x2 + 50) > brix1[j].x) && ((x2+50) <=(brix1[j].x + 50)) || (x2 >= brix1[j].x) && (x2 < (brix1[j].x + 50))) && (((y2 + 20) >= brix1[j].y) && ((y2 + 20) <= (brix1[j].y + 20))))
                 {
-                    //console.log("xx1: " + brix1[j].x + " yy1:" + brix1[j].y);
                     return true;
                 }
             }
@@ -218,11 +199,17 @@
         },
 
         process: function(){
+            var words = this.getListOfWords();
+        },    
+
+        getListOfWords: function(){
             var temp1 = [];
             var temp2 = [];
-            for (var y = 530; y > 210; y--){
+            for (var y = 530; y > 210; y--)
+            {
                 temp2 = [];
-                for (var x = 0; x < 360; x++){
+                for (var x = 0; x < 360; x++)
+                {
                     
                     for (var n = 0; n < brix1.length; n++)
                     {
@@ -239,7 +226,26 @@
                 temp1[y] = temp2.toString();
                 console.log("The Word is " + temp1[y]);
             }
-        }
+            return temp1;
+        },
+
+        checkIfWords: function(cList){
+            if (masterWords.length == 0)
+            {
+                masterWords = cList;
+            }
+            else
+            {
+                for (var x = 0; x < cList.length; x++)
+                {
+                    if (cList[x] != masterWords[x])
+                    {
+                        var result = findWord(cList[x]);
+                        x
+                    }
+                }
+            }
+        }            
     };
 
     var Ctrl = {
@@ -281,7 +287,7 @@
             //console.log(mouseX);
             var canvasX = Game.canvas.offsetLeft;
             var paddleMid = Paddle.w;
-
+            //console.log ("canvasX: " + canvasX + " Paddle.w: " + Paddle.w);
             if (mouseX > canvasX + Paddle.w &&
                 mouseX < canvasX + Game.width) {
                 var newX = mouseX - canvasX;
@@ -290,6 +296,11 @@
             }
         }
     };
+
+/*Key (Dictionary):
+Key (Student 4):
+16d591fc-9c27-4304-8057-5faeb1d1da35
+ff732ecd-23b1-4a56-a316-2aedfca4050c */
 
     window.onload = function() {
     Game.setup();
