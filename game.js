@@ -145,7 +145,7 @@
         init: function(){
             this.x = 100;
             this.y = 210;
-            this.speed = 1;
+            this.speed = 3;
             this.letter = letters[Math.floor(Math.random() * letters.length)];
             this.color = colors[Math.floor(Math.random() * colors.length)];
         },
@@ -424,16 +424,24 @@
         },
 
         // Print out contents of API request
-        reqListener: function(response) {
-            console.log(response.srcElement.responseText);
+        reqListener: function(dataReq) {
+            //debugger
+            var x = dataReq.response;
+            var obj = JSON.parse(x);
+            console.log("SSSSSSSSSSSS " + obj.results[0]["senses"][0]["definition"]);
+            console.log(obj);
         },
 
         // Make API XHR call
         xhrTest: function(word1)
         {
             var oReq = new XMLHttpRequest();
-            oReq.addEventListener("load", this.reqListener);
-            oReq.open("GET", "http://www.dictionaryapi.com/api/v1/references/collegiate/xml/" + word1 +"?key=16d591fc-9c27-4304-8057-5faeb1d1da35");
+            oReq.onreadystatechange = function (){
+                if (oReq.readyState === 4)
+                    Bricks.reqListener(oReq)
+            };
+            oReq.open("GET", "http://api.pearson.com/v2/dictionaries/entries?headword=" + word1);
+            //"http://www.dictionaryapi.com/api/v1/references/collegiate/xml/" + word1 +"?key=16d591fc-9c27-4304-8057-");
             oReq.send();
             console.log("oReq: " + oReq + " reqListener: ");
         }
@@ -491,10 +499,10 @@
         }
     };
 
-/*Key (Dictionary):
+/*Key (Dictionary):5faeb1d1da35-2aedfca4050c
 Key (Student 4):
 16d591fc-9c27-4304-8057-5faeb1d1da35
-ff732ecd-23b1-4a56-a316-2aedfca4050c */
+ff732ecd-23b1-4a56-a316- */
 
     window.onload = function() {
     Game.setup();
